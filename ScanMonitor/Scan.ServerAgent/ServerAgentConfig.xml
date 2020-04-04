@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ServerAgentConfig>
+
+  <ServerConfig>
+    <PingTimeOut>1000</PingTimeOut>
+    <TimerInterval>1000</TimerInterval>
+    <Gateway>192.168.1.1</Gateway>
+    <ServerName>OneLegacyLive</ServerName>
+    <TestPingDomain>www.google.com</TestPingDomain>
+  </ServerConfig>
+
+  <ClientNode ClientId="HOR1">
+    <ClientName>Facebook</ClientName>
+    <IPAddress>31.13.79.35</IPAddress>
+    <WinLogin>User</WinLogin>
+    <DisplayName>Canteen</DisplayName>
+  </ClientNode>
+
+  <ClientNode ClientId="HOR2">
+    <ClientName>StackOverflow</ClientName>
+    <IPAddress>151.101.129.69</IPAddress>
+    <WinLogin>User</WinLogin>
+    <DisplayName>HR</DisplayName>
+  </ClientNode>
+
+</ServerAgentConfig>
