@@ -3,7 +3,7 @@
 
   <ServerConfig>
     <PingTimeOut>1000</PingTimeOut>
-    <TimerInterval>1000</TimerInterval>
+    <TimerInterval>3000</TimerInterval>
     <Gateway>192.168.1.1</Gateway>
     <ServerName>OneLegacyLive</ServerName>
     <TestPingDomain>www.google.com</TestPingDomain>
