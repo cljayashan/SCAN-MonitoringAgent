@@ -79,6 +79,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Classes\Logger.cs" />
     <Compile Include="Entities\Client.cs" />
     <Compile Include="Entities\Server.cs" />
     <Compile Include="Enums\EnumTestResults.cs" />
