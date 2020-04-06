@@ -79,17 +79,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Classes\Logger.cs" />
-    <Compile Include="Entities\Client.cs" />
-    <Compile Include="Entities\Server.cs" />
-    <Compile Include="Enums\EnumTestResults.cs" />
     <Compile Include="ProjectInstaller.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="ProjectInstaller.Designer.cs">
       <DependentUpon>ProjectInstaller.cs</DependentUpon>
     </Compile>
-    <Compile Include="Entities\Report.cs" />
     <Compile Include="ServerAgent.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -98,7 +93,6 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Enums\EnumTestCriteria.cs" />
     <Compile Include="Classes\Validator.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -130,6 +124,23 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\Scan.Entities\Scan.Entities.csproj">
+      <Project>{5dd8aded-aaaa-4bfa-8128-67baadaf92ca}</Project>
+      <Name>Scan.Entities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Scan.Enums\Scan.Enums.csproj">
+      <Project>{c33e669b-914e-4d05-b135-8ad88a5a6731}</Project>
+      <Name>Scan.Enums</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Scan.Logger\Scan.Logger.csproj">
+      <Project>{d005f2ba-8f72-4d3e-bc91-887d18808557}</Project>
+      <Name>Scan.Logger</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Scan.Notifier\Scan.Notifier.csproj">
+      <Project>{3D62D6EA-1F44-4B28-A92C-4505C0F2F9D4}</Project>
+      <Name>Scan.Notifier</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

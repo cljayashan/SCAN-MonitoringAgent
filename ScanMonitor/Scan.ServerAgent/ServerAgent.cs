@@ -1,6 +1,6 @@
-﻿using Scan.ServerAgent.Classes;
-using Scan.ServerAgent.Entities;
-using Scan.ServerAgent.Enums;
+﻿using Scan.Entities;
+using Scan.Enums;
+using Scan.ServerAgent.Classes;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -13,6 +13,8 @@ using System.ServiceProcess;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using Scan.Logger;
+using Scan.Notifier;
 
 namespace Scan.ServerAgent
 {
@@ -27,17 +29,17 @@ namespace Scan.ServerAgent
 
         public ServerAgent()
         {
-            Logger.WriteLine("Service initialization started");
+            Log.WriteLine("Service initialization started");
             InitializeComponent();
-            Logger.WriteLine("Service initialization completed");
+            Log.WriteLine("Service initialization completed");
 
             config = GetConfigXml();
-            Logger.WriteLine("Configuration file attached");
+            Log.WriteLine("Configuration file attached");
 
             timer = new System.Timers.Timer();
             timer.Elapsed += new System.Timers.ElapsedEventHandler(OnTimerElapsed);
             timer.Interval = int.Parse(config.SelectSingleNode("//ServerConfig/TimerInterval").InnerText.ToString());
-            Logger.WriteLine("Timer initialization completed");
+            Log.WriteLine("Timer initialization completed");
 
             val = new Validator();
             this.pingTimeOut = int.Parse(config.SelectSingleNode("//ServerConfig/PingTimeOut").InnerText.ToString());
@@ -48,7 +50,7 @@ namespace Scan.ServerAgent
         protected override void OnStart(string[] args)
         {
             timer.Start();
-            Logger.WriteLine("Timer ticking started");
+            Log.WriteLine("Timer ticking started");
         }
 
         protected override void OnStop()
@@ -58,7 +60,7 @@ namespace Scan.ServerAgent
 
         public void OnDebug()
         {
-
+            CallCheckRound();
         }
 
         #endregion
@@ -71,7 +73,7 @@ namespace Scan.ServerAgent
             {
                 XmlDocument doc = new XmlDocument();
 #if DEBUG
-                            doc.Load("../../ServerAgentConfig.xml");
+                doc.Load("ServerAgentConfig.xml");
 #else
                 //doc.Load(Directory.GetCurrentDirectory() + @"\ServerAgentConfig.xml");
                 doc.Load(AppDomain.CurrentDomain.BaseDirectory + @"\ServerAgentConfig.xml");
@@ -82,7 +84,7 @@ namespace Scan.ServerAgent
             }
             catch (Exception ex)
             {
-                Logger.WriteLine(ex.Message);
+                Log.WriteLine(ex.Message);
                 throw ex;
             }
 
@@ -110,78 +112,137 @@ namespace Scan.ServerAgent
             }
             catch (Exception ex)
             {
-                Logger.WriteLine("ERROR : " + ex.Message);
+                Log.WriteLine("ERROR : " + ex.Message);
                 throw ex;
             }
 
         }
 
-        public void CheckRound()
+        public List<Report> CheckRound()
         {
             reports = new List<Report>();
-            Logger.WriteLine("Check round started");
+            //Get configured Clients
+            var ClientList = GetClientList(config.SelectNodes("//ClientNode"));
+
+            reports.Add(new Report(DateTime.MaxValue, EnumTestCriteria.ReachGateway, EnumTestResults.Pending));
+            reports.Add(new Report(DateTime.MaxValue, EnumTestCriteria.ReachDomainName, EnumTestResults.Pending));
+            foreach (var item in ClientList)
+            {
+                reports.Add(new Report(DateTime.MaxValue, EnumTestCriteria.ReachClient, EnumTestResults.Pending));
+            }
+
+
+            Log.WriteLine("Check round started");
 
             try
             {
                 //Check Gateway connectivity
                 string gatewayIp = config.SelectSingleNode("//ServerConfig/Gateway").InnerText.ToString();
-                if (val.PingToIP(gatewayIp, this.pingTimeOut))
+                try
                 {
-                    Console.WriteLine("Ping to gateway is failed : " + gatewayIp);
-                    Logger.WriteLine("Ping to gateway is failed : " + gatewayIp);
-                    reports.Add(new Report(DateTime.Now, EnumTestCriteria.ReachGateway, EnumTestResults.Successful));
-                }
-                else
-                {
-                    reports.Add(new Report(DateTime.Now, EnumTestCriteria.ReachGateway, EnumTestResults.Failed));
-                    Console.WriteLine("Ping to gateway is successful : " + gatewayIp);
-                    Logger.WriteLine("Ping to gateway is successful : " + gatewayIp);
-                }
 
+                    if (val.PingToIP(gatewayIp, this.pingTimeOut))
+                    {
+                        Console.WriteLine("Ping to gateway is successful: " + gatewayIp);
+                        Log.WriteLine("Ping to gateway is successful : " + gatewayIp);
+                        reports.Where(x => x.Criteria == EnumTestCriteria.ReachGateway).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault().Result = EnumTestResults.Successful;
+                    }
+                    else
+                    {
+                        reports.Where(x => x.Criteria == EnumTestCriteria.ReachGateway).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault().Result = EnumTestResults.Failed;
+                        Console.WriteLine("Ping to gateway is  : failed " + gatewayIp);
+                        Log.WriteLine("Ping to gateway is failed  : " + gatewayIp);
+                    }
+                }
+                catch (Exception _ex1)
+                {
+                    reports.Where(x => x.Criteria == EnumTestCriteria.ReachGateway).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault().Result = EnumTestResults.Failed;
+                    Console.WriteLine("Ping to gateway is  : failed " + gatewayIp);
+                    Log.WriteLine("Ping to gateway is failed  : " + gatewayIp);
+                    Log.WriteLine(_ex1.Message + " : " + gatewayIp);
+                }
 
                 //Check internet connectivity by pinging to a web address
                 string pingDomain = config.SelectSingleNode("//ServerConfig/TestPingDomain").InnerText.ToString();
-                if (val.PingToDomain(pingDomain, this.pingTimeOut))
+                try
                 {
-                    Console.WriteLine("Ping to domain is failed : " + pingDomain);
-                    Logger.WriteLine("Ping to domain is failed : " + pingDomain);
-                    reports.Add(new Report(DateTime.Now, EnumTestCriteria.ReachDomainName, EnumTestResults.Successful));
+                    if (val.PingToDomain(pingDomain, this.pingTimeOut))
+                    {
+                        Console.WriteLine("Ping to domain is successful : " + pingDomain);
+                        Log.WriteLine("Ping to domain is successful : " + pingDomain);
+                        reports.Where(x => x.Criteria == EnumTestCriteria.ReachDomainName).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault().Result = EnumTestResults.Successful;
+                    }
+                    else
+                    {
+                        reports.Where(x => x.Criteria == EnumTestCriteria.ReachDomainName).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault().Result = EnumTestResults.Failed;
+                        Console.WriteLine("Ping to domain is failed : " + pingDomain);
+                        Log.WriteLine("Ping to domain is failed : " + pingDomain);
+                    }
                 }
-                else
+                catch (Exception _ex2)
                 {
-                    reports.Add(new Report(DateTime.Now, EnumTestCriteria.ReachDomainName, EnumTestResults.Failed));
-                    Console.WriteLine("Ping to domain is successful : " + pingDomain);
-                    Logger.WriteLine("Ping to domain is successful : " + pingDomain);
+                    reports.Where(x => x.Criteria == EnumTestCriteria.ReachDomainName).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault().Result = EnumTestResults.Failed;
+                    Console.WriteLine("Ping to domain is failed : " + pingDomain);
+                    Log.WriteLine("Ping to domain is failed : " + pingDomain);
+                    Log.WriteLine(_ex2.Message + " : " + pingDomain);
                 }
 
-                //Get configured Clients
-                var ClientList = GetClientList(config.SelectNodes("//ClientNode"));
+
 
                 //Check all clients one by one
                 foreach (var item in ClientList)
                 {
-                    if (val.PingToIP(item.IpAddress, this.pingTimeOut))
+
+                    try
                     {
-                        Console.WriteLine("Ping to client " + item.ClientName + "  is successful : " + item.IpAddress);
-                        Logger.WriteLine("Ping to client " + item.ClientName + "  is successful : " + item.IpAddress);
-                        reports.Add(new Report(DateTime.Now, EnumTestCriteria.ReachClient, EnumTestResults.Successful));
+                        if (val.PingToIP(item.IpAddress, this.pingTimeOut))
+                        {
+                            Console.WriteLine("Ping to client " + item.ClientName + "  is successful : " + item.IpAddress);
+                            Log.WriteLine("Ping to client " + item.ClientName + "  is successful : " + item.IpAddress);
+                            reports.Where(x => x.Criteria == EnumTestCriteria.ReachClient).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault().Result = EnumTestResults.Successful;
+                        }
+                        else
+                        {
+                            Console.WriteLine("Ping to client " + item.ClientName + "  is failed : " + item.IpAddress);
+                            Log.WriteLine("Ping to client " + item.ClientName + "  is failed : " + item.IpAddress);
+                            reports.Where(x => x.Criteria == EnumTestCriteria.ReachClient).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault().Result = EnumTestResults.Failed;
+                        }
                     }
-                    else
+                    catch (Exception _ex3)
                     {
                         Console.WriteLine("Ping to client " + item.ClientName + "  is failed : " + item.IpAddress);
-                        Logger.WriteLine("Ping to client " + item.ClientName + "  is failed : " + item.IpAddress);
-                        reports.Add(new Report(DateTime.Now, EnumTestCriteria.ReachClient, EnumTestResults.Failed));
+                        Log.WriteLine("Ping to client " + item.ClientName + "  is failed : " + item.IpAddress);
+                        reports.Where(x => x.Criteria == EnumTestCriteria.ReachClient).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault().Result = EnumTestResults.Failed;
+                        Log.WriteLine(_ex3.Message + " : " + item.ClientName + " | " + item.IpAddress);
+                        continue;
                     }
+
+
                 }
+
+                Log.WriteLine("Check round completed" + Environment.NewLine);
+                return reports;
 
             }
             catch (Exception ex)
             {
-                Logger.WriteLine("ERROR : " + ex.Message);
+                Log.WriteLine("ERROR : " + ex.Message);
                 throw ex;
             }
 
-            Logger.WriteLine("Check round completed" + Environment.NewLine);
+        }
+
+        private void CallCheckRound()
+        {
+            List<Report> rList = CheckRound();
+
+            var failures = rList.Where(x => x.Result == EnumTestResults.Failed).ToList();
+            var notifConfigElem = config.SelectSingleNode("//NotificationConfig");
+
+            if (failures.Count > 0)
+            {
+                Notification.Send(reports, notifConfigElem);
+            }
         }
 
         #endregion
@@ -191,8 +252,10 @@ namespace Scan.ServerAgent
         public void OnTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             Console.WriteLine("Timer elapsed");
-            Logger.WriteLine("Timer elapsed");
-            CheckRound();
+            Log.WriteLine("Timer elapsed");
+
+            CallCheckRound();
+
         }
 
         #endregion

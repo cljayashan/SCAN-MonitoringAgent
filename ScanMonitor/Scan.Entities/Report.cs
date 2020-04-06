@@ -1,11 +1,11 @@
-﻿using Scan.ServerAgent.Enums;
+﻿using Scan.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Scan.ServerAgent.Entities
+namespace Scan.Entities
 {
     public class Report
     {

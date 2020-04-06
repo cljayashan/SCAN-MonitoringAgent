@@ -16,19 +16,17 @@ namespace Scan.ServerAgent
         /// </summary>
         static void Main()
         {
-            //#if DEBUG
 
-            //            new ServerAgent().OnDebug();
-
-
-            //#else
+#if DEBUG
+            new ServerAgent().OnDebug();
+#else
             ServiceBase[] ServicesToRun;
             ServicesToRun = new ServiceBase[]
             {
                 new ServerAgent()
             };
             ServiceBase.Run(ServicesToRun);
-            //#endif
+#endif
 
         }
     }

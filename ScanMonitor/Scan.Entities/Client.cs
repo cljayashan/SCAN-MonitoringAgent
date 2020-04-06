@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Scan.ServerAgent.Entities
+namespace Scan.Entities
 {
     public class Client
     {

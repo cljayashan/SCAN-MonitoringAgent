@@ -3,11 +3,38 @@
 
   <ServerConfig>
     <PingTimeOut>1000</PingTimeOut>
-    <TimerInterval>3000</TimerInterval>
+    <TimerInterval>10000</TimerInterval>
     <Gateway>192.168.1.1</Gateway>
     <ServerName>OneLegacyLive</ServerName>
-    <TestPingDomain>www.google.com</TestPingDomain>
+    <TestPingDomain>www.weearitest.tk</TestPingDomain>
   </ServerConfig>
+
+  <NotificationConfig>
+    
+    <SMS Enabled="1">
+      <SMSGatewayUrl>https://cpsolutions.dialog.lk/index.php/cbs/sms/send?</SMSGatewayUrl>
+      <APIKey>YourApiKey</APIKey>
+      <Recipients>
+        <Number>0000000000</Number>
+        <Number>0000000000</Number>
+      </Recipients>     
+    </SMS>
+    
+    <!--<Email Enabled="1">
+      <SMTPServer></SMTPServer>
+      <SMTPPort></SMTPPort>
+      <From></From>
+      <To>
+        <Address Id="" Name=""></Address>
+        <Address Id="" Name=""></Address>
+        <Address Id="" Name=""></Address>
+      </To>
+      <CC>
+        <Address Id="" Name=""></Address>
+      </CC>
+    </Email>-->
+    
+  </NotificationConfig>
 
   <ClientNode ClientId="HOR1">
     <ClientName>Facebook</ClientName>

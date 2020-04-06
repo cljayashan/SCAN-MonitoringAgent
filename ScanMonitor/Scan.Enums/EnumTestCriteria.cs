@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Scan.ServerAgent.Enums
+namespace Scan.Enums
 {
     public enum EnumTestCriteria
     {

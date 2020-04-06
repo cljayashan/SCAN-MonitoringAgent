@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Scan.ServerAgent.Classes
+namespace Scan.Logger
 {
-    public static class Logger
+    public static class Log
     {
         public static void WriteLine(string message)
         {
@@ -18,7 +18,7 @@ namespace Scan.ServerAgent.Classes
             {
                 Directory.CreateDirectory(path);
             }
-
+           
             string filepath = AppDomain.CurrentDomain.BaseDirectory + "\\Logs\\ServiceLog_" + DateTime.Now.Date.ToShortDateString().Replace('/', '_') + ".txt";
             if (!File.Exists(filepath))
             {
