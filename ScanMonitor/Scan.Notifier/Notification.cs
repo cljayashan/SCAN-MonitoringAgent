@@ -43,6 +43,15 @@ namespace Scan.Notifier
                             }
                             else
                             {
+                                string msgText = "ServerAgent Report :" + Environment.NewLine;
+
+                                foreach (var r in reports)
+                                {
+                                    msgText += r.Remarks + Environment.NewLine;
+                                }
+                                msgText += "Report End";
+
+
                                 string gatewayUrl = notificationConfigurationElement.SelectSingleNode("//SMS/SMSGatewayUrl").InnerText;
                                 string apiKey = notificationConfigurationElement.SelectSingleNode("//SMS/APIKey").InnerText;
 
@@ -56,7 +65,7 @@ namespace Scan.Notifier
                                     foreach (XmlNode item in recipients)
                                     {
                                         var mobile = item.InnerText.Length == 10 ? item.InnerText : 0 + item.InnerText;
-                                        string uriDialog = gatewayUrl + "destination=" + mobile + "&q=" + apiKey + "&message=" + System.Uri.EscapeDataString("Report data goes here");
+                                        string uriDialog = gatewayUrl + "destination=" + mobile + "&q=" + apiKey + "&message=" + System.Uri.EscapeDataString(msgText);
 
                                         HttpResponseMessage response = client.GetAsync(uriDialog.ToString()).Result;
                                         string SendingStatus = "";

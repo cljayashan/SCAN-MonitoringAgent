@@ -9,7 +9,7 @@ namespace Scan.Enums
     public enum EnumTestCriteria
     {
         ReachGateway = 1,
-        ReachDomainName = 2,
+        ReachDomain = 2,
         ReachClient = 3
     }
 }

@@ -49,6 +49,10 @@
       <Project>{5DD8ADED-AAAA-4BFA-8128-67BAADAF92CA}</Project>
       <Name>Scan.Entities</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Scan.Enums\Scan.Enums.csproj">
+      <Project>{C33E669B-914E-4D05-B135-8AD88A5A6731}</Project>
+      <Name>Scan.Enums</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Scan.Logger\Scan.Logger.csproj">
       <Project>{D005F2BA-8F72-4D3E-BC91-887D18808557}</Project>
       <Name>Scan.Logger</Name>
