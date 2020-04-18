@@ -14,12 +14,19 @@ namespace Scan.ClientAgent
         /// </summary>
         static void Main()
         {
-            ServiceBase[] ServicesToRun;
+
+#if DEBUG
+            new ClientAgent().OnDebug();
+#else
+           ServiceBase[] ServicesToRun;
             ServicesToRun = new ServiceBase[]
             {
                 new ClientAgent()
             };
             ServiceBase.Run(ServicesToRun);
+#endif
+
+
         }
     }
 }

@@ -10,6 +10,9 @@ namespace Scan.Enums
     {
         ReachGateway = 1,
         ReachDomain = 2,
-        ReachClient = 3
+        ReachClient = 3,
+        ReachAppliance = 4,
+        ReachApplication = 5,
+        ReachServer = 6
     }
 }

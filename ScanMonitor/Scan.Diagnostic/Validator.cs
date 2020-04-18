@@ -5,11 +5,11 @@ using System.Net.NetworkInformation;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Scan.ServerAgent.Classes
+namespace Scan.Diagnostic
 {
     public class Validator
     {
-        public bool PingToIP(string ipAddr,int timeout)
+        public bool PingToIP(string ipAddr, int timeout)
         {
             try
             {
@@ -35,10 +35,10 @@ namespace Scan.ServerAgent.Classes
             {
                 throw ex;
             }
-          
+
         }
 
-        public bool PingToDomain(string domainName,int timeout)
+        public bool PingToDomain(string domainName, int timeout)
         {
             try
             {
@@ -61,9 +61,9 @@ namespace Scan.ServerAgent.Classes
                 }
             }
             catch (Exception ex)
-            { 
+            {
                 throw ex;
-            }           
+            }
         }
 
     }

@@ -1,6 +1,5 @@
 ﻿using Scan.Entities;
 using Scan.Enums;
-using Scan.ServerAgent.Classes;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -15,6 +14,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using Scan.Logger;
 using Scan.Notifier;
+using Scan.Diagnostic;
 
 namespace Scan.ServerAgent
 {
@@ -131,7 +131,6 @@ namespace Scan.ServerAgent
                 reports.Add(new Report(DateTime.MaxValue, EnumTestCriteria.ReachClient, EnumTestResults.Pending));
             }
 
-
             Log.WriteLine("Check round started");
 
             try
@@ -140,7 +139,6 @@ namespace Scan.ServerAgent
                 string gatewayIp = config.SelectSingleNode("//ServerConfig/Gateway").InnerText.ToString();
                 try
                 {
-
                     if (val.PingToIP(gatewayIp, this.pingTimeOut))
                     {
                         var rep = reports.Where(x => x.Criteria == EnumTestCriteria.ReachGateway).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault();
@@ -204,7 +202,6 @@ namespace Scan.ServerAgent
                 //Check all clients one by one
                 foreach (var item in ClientList)
                 {
-
                     try
                     {
                         if (val.PingToIP(item.IpAddress, this.pingTimeOut))
@@ -234,7 +231,6 @@ namespace Scan.ServerAgent
                         //Console.WriteLine("Ping to client " + item.ClientName + "  is failed : " + item.IpAddress);
                         continue;
                     }
-
                 }
 
                 Log.WriteLine("Check round completed" + Environment.NewLine);

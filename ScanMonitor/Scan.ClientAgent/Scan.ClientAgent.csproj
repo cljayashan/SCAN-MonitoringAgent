@@ -70,5 +70,33 @@
       <DependentUpon>ProjectInstaller.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Scan.Diagnostic\Scan.Diagnostic.csproj">
+      <Project>{31973536-59AE-4149-9B28-4E9D257A881B}</Project>
+      <Name>Scan.Diagnostic</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Scan.Entities\Scan.Entities.csproj">
+      <Project>{5DD8ADED-AAAA-4BFA-8128-67BAADAF92CA}</Project>
+      <Name>Scan.Entities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Scan.Enums\Scan.Enums.csproj">
+      <Project>{C33E669B-914E-4D05-B135-8AD88A5A6731}</Project>
+      <Name>Scan.Enums</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Scan.Logger\Scan.Logger.csproj">
+      <Project>{D005F2BA-8F72-4D3E-BC91-887D18808557}</Project>
+      <Name>Scan.Logger</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Scan.Notifier\Scan.Notifier.csproj">
+      <Project>{3D62D6EA-1F44-4B28-A92C-4505C0F2F9D4}</Project>
+      <Name>Scan.Notifier</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ClientAgentConfig.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
+    </Content>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

@@ -93,7 +93,6 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Classes\Validator.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -125,6 +124,10 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Scan.Diagnostic\Scan.Diagnostic.csproj">
+      <Project>{31973536-59AE-4149-9B28-4E9D257A881B}</Project>
+      <Name>Scan.Diagnostic</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Scan.Entities\Scan.Entities.csproj">
       <Project>{5dd8aded-aaaa-4bfa-8128-67baadaf92ca}</Project>
       <Name>Scan.Entities</Name>

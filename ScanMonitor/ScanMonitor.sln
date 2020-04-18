@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scan.Enums", "Scan.Enums\Sc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scan.Logger", "Scan.Logger\Scan.Logger.csproj", "{D005F2BA-8F72-4D3E-BC91-887D18808557}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scan.Diagnostic", "Scan.Diagnostic\Scan.Diagnostic.csproj", "{31973536-59AE-4149-9B28-4E9D257A881B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +47,10 @@ Global
 		{D005F2BA-8F72-4D3E-BC91-887D18808557}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D005F2BA-8F72-4D3E-BC91-887D18808557}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D005F2BA-8F72-4D3E-BC91-887D18808557}.Release|Any CPU.Build.0 = Release|Any CPU
+		{31973536-59AE-4149-9B28-4E9D257A881B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{31973536-59AE-4149-9B28-4E9D257A881B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{31973536-59AE-4149-9B28-4E9D257A881B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{31973536-59AE-4149-9B28-4E9D257A881B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

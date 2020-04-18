@@ -1,0 +1,47 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ClientAgentConfig>
+
+  <ClientConfig>
+    <PingTimeOut>1000</PingTimeOut>
+    <TimerInterval>10000</TimerInterval>
+    <Gateway>192.168.1.1</Gateway>
+    <ClientName>Canteen_Kiosk</ClientName>
+    <TestPingDomain>www.google.com</TestPingDomain>
+  </ClientConfig>
+
+  <ServerConfig>
+    <ServerName>GUHPAKJVTFU</ServerName>
+    <ServerIp>192.168.1.1</ServerIp>
+    <DisplayName>OneLegacyLiveSvr</DisplayName>
+    <ServerApplicationConfig>
+      <Application id="1">
+        <Url>http://testapp.azurewebsites.net</Url>
+        <Parameter></Parameter>
+      </Application>
+    </ServerApplicationConfig>
+  </ServerConfig>
+
+  <NotificationConfig>
+    <SMS Enabled="1">
+      <SMSGatewayUrl>https://cpsolutions.dialog.lk/index.php/cbs/sms/send?</SMSGatewayUrl>
+      <APIKey>YourApiKey</APIKey>
+      <Recipients>
+        <Number>0000000000</Number>
+        <Number>0000000000</Number>
+      </Recipients>
+    </SMS>
+  </NotificationConfig>
+
+  <ApplianceNode ApplianceId="FP1">
+    <ApplianceName>FingerPrint_MainGate1</ApplianceName>
+    <IPAddress>192.168.8.1</IPAddress>
+    <DisplayName>MainGate_FP1</DisplayName>
+  </ApplianceNode>
+
+  <ApplianceNode ApplianceId="FP2">
+    <ApplianceName>FingerPrint_MainGate2</ApplianceName>
+    <IPAddress>192.168.8.1</IPAddress>
+    <DisplayName>MainGate_FP2</DisplayName>
+  </ApplianceNode>
+
+</ClientAgentConfig>
