@@ -66,9 +66,7 @@ namespace Scan.ClientAgent
 #if DEBUG
                 doc.Load("ClientAgentConfig.xml");
 #else
-                //doc.Load(Directory.GetCurrentDirectory() + @"\ServerAgentConfig.xml");
-                doc.Load(AppDomain.CurrentDomain.BaseDirectory + @"\ServerAgentConfig.xml");
-                //doc.Load(@"F:\scanpublish\ServerAgentConfig.xml");
+                doc.Load(AppDomain.CurrentDomain.BaseDirectory + @"\ClientAgentConfig.xml");
 #endif
                 string xmlcontents = doc.InnerXml;
                 return doc;
