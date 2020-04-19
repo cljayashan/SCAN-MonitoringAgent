@@ -202,24 +202,37 @@ namespace Scan.ClientAgent
 
                 //Check application here
                 string webAppUrl = config.SelectSingleNode("//ServerConfig/ServerApplicationConfig").InnerText.ToString();
-                WebRequest request = WebRequest.Create(webAppUrl);
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                if (response == null || response.StatusCode != HttpStatusCode.OK)
+                try
+                {
+                    WebRequest request = WebRequest.Create(webAppUrl);
+                    HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                    if (response == null || response.StatusCode != HttpStatusCode.OK)
+                    {
+                        var rep = reports.Where(x => x.Criteria == EnumTestCriteria.ReachApplication).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault();
+                        rep.Result = EnumTestResults.Failed;
+                        rep.Remarks = rep.Criteria.ToString() + " [" + webAppUrl + "] " + rep.Result.ToString();
+
+                        Log.WriteLine("Application is not available " + webAppUrl);
+                        Log.WriteLine("Status : " + response.StatusDescription);
+                    }
+                    else
+                    {
+                        var rep = reports.Where(x => x.Criteria == EnumTestCriteria.ReachApplication).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault();
+                        rep.Result = EnumTestResults.Successful;
+                        rep.Remarks = rep.Criteria.ToString() + " [" + webAppUrl + "] " + rep.Result.ToString();
+                        Log.WriteLine("Web app is up and running : " + webAppUrl);
+                    }
+                }
+                catch (Exception ex)
                 {
                     var rep = reports.Where(x => x.Criteria == EnumTestCriteria.ReachApplication).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault();
                     rep.Result = EnumTestResults.Failed;
                     rep.Remarks = rep.Criteria.ToString() + " [" + webAppUrl + "] " + rep.Result.ToString();
 
-                    Log.WriteLine(webAppUrl + " is not available ");
-                    Log.WriteLine("Status : " + response.StatusDescription);
+                    Log.WriteLine("Application is not available due to exception " + webAppUrl);
+                    Log.WriteLine("Exception " + ex.Message);
                 }
-                else
-                {
-                    var rep = reports.Where(x => x.Criteria == EnumTestCriteria.ReachApplication).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault();
-                    rep.Result = EnumTestResults.Successful;
-                    rep.Remarks = rep.Criteria.ToString() + " [" + webAppUrl + "] " + rep.Result.ToString();
-                    Log.WriteLine("Web app is up and running : " + webAppUrl);
-                }
+                              
 
 
                 //Check appliance here
