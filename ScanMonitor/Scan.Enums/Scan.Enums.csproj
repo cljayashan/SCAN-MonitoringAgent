@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="EnumReport.cs" />
     <Compile Include="EnumTestCriteria.cs" />
     <Compile Include="EnumTestResults.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

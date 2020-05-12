@@ -26,6 +26,8 @@ namespace Scan.ClientAgent
         List<Report> reports;
         Server server;
         int pingTimeOut;
+        int retryCount;
+        double successPercentage;
 
         public ClientAgent()
         {
@@ -33,20 +35,33 @@ namespace Scan.ClientAgent
             InitializeComponent();
             Log.WriteLine("Client Agent Service initialization completed");
 
-            config = GetConfigXml();
-            Log.WriteLine("Configuration file attached");
+            try
+            {
+                config = GetConfigXml();
+                Log.WriteLine("Configuration file attached");
 
-            timer = new System.Timers.Timer();
-            timer.Elapsed += new System.Timers.ElapsedEventHandler(OnTimerElapsed);
-            timer.Interval = int.Parse(config.SelectSingleNode("//ClientConfig/TimerInterval").InnerText.ToString());
-            Log.WriteLine("Timer initialization completed");
+                timer = new System.Timers.Timer();
+                timer.Elapsed += new System.Timers.ElapsedEventHandler(OnTimerElapsed);
+                timer.Interval = int.Parse(config.SelectSingleNode("//ClientConfig/TimerInterval").InnerText.ToString());
+                Log.WriteLine("Timer initialization completed");
 
-            val = new Validator();
-            this.pingTimeOut = int.Parse(config.SelectSingleNode("//ClientConfig/PingTimeOut").InnerText.ToString());
+                val = new Validator();
+                this.pingTimeOut = int.Parse(config.SelectSingleNode("//ClientConfig/PingTimeOut").InnerText.ToString());
+                this.retryCount = int.Parse(config.SelectSingleNode("//ClientConfig/RetryAttempts").InnerText.ToString());
+                this.successPercentage = double.Parse(config.SelectSingleNode("//ClientConfig/SuccessPercentage").InnerText.ToString());
+            }
+            catch (Exception ex)
+            {
+                Log.WriteLine("Initialization failed");
+                Log.WriteLine(ex.Message);
+            }
         }
 
         protected override void OnStart(string[] args)
         {
+            timer.Start();
+            Log.WriteLine("Timer ticking started");
+            CallCheckRound();
         }
 
         protected override void OnStop()
@@ -88,7 +103,7 @@ namespace Scan.ClientAgent
 
             if (failures.Count > 0)
             {
-                Notification.Send(failures, notifConfigElem);
+                Notification.Send(failures, notifConfigElem, EnumReport.ClientAgent);
             }
         }
 
@@ -100,7 +115,7 @@ namespace Scan.ClientAgent
 
             reports.Add(new Report(DateTime.MaxValue, EnumTestCriteria.ReachGateway, EnumTestResults.Pending));
             reports.Add(new Report(DateTime.MaxValue, EnumTestCriteria.ReachDomain, EnumTestResults.Pending));
-            reports.Add(new Report(DateTime.MaxValue, EnumTestCriteria.ReachApplication, EnumTestResults.Pending));
+            //reports.Add(new Report(DateTime.MaxValue, EnumTestCriteria.ReachApplication, EnumTestResults.Pending));
             reports.Add(new Report(DateTime.MaxValue, EnumTestCriteria.ReachServer, EnumTestResults.Pending));
             foreach (var item in ApplianceList)
             {
@@ -115,122 +130,130 @@ namespace Scan.ClientAgent
                 string gatewayIp = config.SelectSingleNode("//ClientConfig/Gateway").InnerText.ToString();
                 try
                 {
-                    if (val.PingToIP(gatewayIp, this.pingTimeOut))
+                    Log.WriteLine("Ping to gateway is started : " + gatewayIp);
+                    double succRate = (val.PingToIP(gatewayIp, this.pingTimeOut, this.retryCount) / retryCount) * 100;
+                    if (succRate >= successPercentage)
                     {
                         var rep = reports.Where(x => x.Criteria == EnumTestCriteria.ReachGateway).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault();
                         rep.Result = EnumTestResults.Successful;
-                        rep.Remarks = rep.Criteria.ToString() + " [" + gatewayIp + "] " + rep.Result.ToString();
-                        Log.WriteLine("Ping to gateway is successful : " + gatewayIp);
+                        //rep.Remarks = rep.Criteria.ToString() + " [" + gatewayIp + "] " + rep.Result.ToString();
+                        Log.WriteLine("Ping to gateway is successful : [" + succRate.ToString() + "%] " + gatewayIp);
+                        //Log : Ping to gateway is successful [100%] - 192.168.1.1
                     }
                     else
                     {
                         var rep = reports.Where(x => x.Criteria == EnumTestCriteria.ReachGateway).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault();
                         rep.Result = EnumTestResults.Failed;
-                        rep.Remarks = rep.Criteria.ToString() + " [" + gatewayIp + "]" + rep.Result.ToString();
-                        Log.WriteLine("Ping to gateway is failed  : " + gatewayIp);
+                        rep.Remarks = rep.Criteria.ToString() + " " + rep.Result.ToString() + " [" + succRate.ToString() + "%] - " + gatewayIp;
+                        Log.WriteLine("Ping to gateway is failed [" + succRate.ToString() + "%] - " + gatewayIp);
                     }
                 }
-                catch (Exception _ex1)
+                catch (Exception ex)
                 {
                     var rep = reports.Where(x => x.Criteria == EnumTestCriteria.ReachGateway).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault();
                     rep.Result = EnumTestResults.Failed;
-                    rep.Remarks = rep.Criteria.ToString() + " [" + gatewayIp + "]" + rep.Result.ToString();
-                    Log.WriteLine("Ping to gateway is failed  : " + gatewayIp);
-                    Log.WriteLine(_ex1.Message + " : " + gatewayIp);
+                    rep.Remarks = rep.Criteria.ToString() + " failed due to exception. - " + gatewayIp + ". ";
+                    Log.WriteLine("Ping to gateway is failed due to  exception  : " + gatewayIp);
+                    Log.WriteLine("EXCEPTION : " + ex.Message);
                 }
+                Log.WriteLine("Ping to gateway is completed : " + gatewayIp);
+
 
                 //Check server connectivity here
                 string serverIp = config.SelectSingleNode("//ServerConfig/ServerIp").InnerText.ToString();
                 try
                 {
-                    if (val.PingToIP(serverIp, this.pingTimeOut))
+                    Log.WriteLine("Ping to server is started " + serverIp);
+                    double succRate = (val.PingToIP(serverIp, this.pingTimeOut, this.retryCount) / retryCount) * 100;
+                    if (succRate >= successPercentage)
                     {
                         var rep = reports.Where(x => x.Criteria == EnumTestCriteria.ReachServer).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault();
                         rep.Result = EnumTestResults.Successful;
-                        rep.Remarks = rep.Criteria.ToString() + " [" + serverIp + "] " + rep.Result.ToString();
-                        Log.WriteLine("Ping to server is successful : " + serverIp);
+                        //rep.Remarks = rep.Criteria.ToString() + " [" + serverIp + "] " + rep.Result.ToString();
+                        Log.WriteLine("Ping to server is successful : [" + succRate.ToString() + "%] " + serverIp);
                     }
                     else
                     {
                         var rep = reports.Where(x => x.Criteria == EnumTestCriteria.ReachServer).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault();
                         rep.Result = EnumTestResults.Failed;
-                        rep.Remarks = rep.Criteria.ToString() + " [" + serverIp + "]" + rep.Result.ToString();
-                        Log.WriteLine("Ping to server is failed  : " + serverIp);
+                        rep.Remarks = rep.Criteria.ToString() + " " + rep.Result.ToString() + " [" + succRate.ToString() + "%] - " + serverIp;
+                        Log.WriteLine("Ping to server is failed [" + succRate.ToString() + "%] - " + serverIp);
                     }
                 }
-                catch (Exception _ex1)
+                catch (Exception ex)
                 {
                     var rep = reports.Where(x => x.Criteria == EnumTestCriteria.ReachServer).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault();
                     rep.Result = EnumTestResults.Failed;
-                    rep.Remarks = rep.Criteria.ToString() + " [" + serverIp + "]" + rep.Result.ToString();
-                    Log.WriteLine("Ping to server is failed  : " + serverIp);
-                    Log.WriteLine(_ex1.Message + " : " + serverIp);
+                    rep.Remarks = rep.Criteria.ToString() + " failed due to exception - " + serverIp;
+                    Log.WriteLine("Ping to server is failed due to exception : " + serverIp);
+                    Log.WriteLine("EXCEPTION : " + ex.Message);
                 }
-
+                Log.WriteLine("Ping to server is completed " + serverIp);
 
 
                 //Check internet connectivity by pinging to a web address
                 string pingDomain = config.SelectSingleNode("//ClientConfig/TestPingDomain").InnerText.ToString();
                 try
                 {
-                    if (val.PingToDomain(pingDomain, this.pingTimeOut))
+                    Log.WriteLine("Ping to domain is started : " + pingDomain);
+                    double succRate = (val.PingToDomain(pingDomain, this.pingTimeOut, this.retryCount) / retryCount) * 100;
+                    if (succRate >= successPercentage)
                     {
                         var rep = reports.Where(x => x.Criteria == EnumTestCriteria.ReachDomain).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault();
                         rep.Result = EnumTestResults.Successful;
-                        rep.Remarks = rep.Criteria.ToString() + " [" + pingDomain + "] " + rep.Result.ToString();
-                        Log.WriteLine("Ping to domain is successful : " + pingDomain);
+                        //rep.Remarks = rep.Criteria.ToString() + " [" + pingDomain + "] " + rep.Result.ToString();
+                        Log.WriteLine("Ping to domain is successful : [" + succRate.ToString() + "%] " + pingDomain);
                     }
                     else
                     {
                         var rep = reports.Where(x => x.Criteria == EnumTestCriteria.ReachDomain).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault();
                         rep.Result = EnumTestResults.Failed;
-                        rep.Remarks = rep.Criteria.ToString() + " [" + pingDomain + "] " + rep.Result.ToString();
-                        Log.WriteLine("Ping to domain is failed : " + pingDomain);
-                    }
-                }
-                catch (Exception _ex2)
-                {
-                    var rep = reports.Where(x => x.Criteria == EnumTestCriteria.ReachDomain).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault();
-                    rep.Result = EnumTestResults.Failed;
-                    rep.Remarks = rep.Criteria.ToString() + " [" + pingDomain + "] " + rep.Result.ToString();
-                    Log.WriteLine("Ping to domain is failed : " + pingDomain);
-                    Log.WriteLine(_ex2.Message + " : " + pingDomain);
-                }
-
-
-                //Check application here
-                string webAppUrl = config.SelectSingleNode("//ServerConfig/ServerApplicationConfig").InnerText.ToString();
-                try
-                {
-                    WebRequest request = WebRequest.Create(webAppUrl);
-                    HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                    if (response == null || response.StatusCode != HttpStatusCode.OK)
-                    {
-                        var rep = reports.Where(x => x.Criteria == EnumTestCriteria.ReachApplication).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault();
-                        rep.Result = EnumTestResults.Failed;
-                        rep.Remarks = rep.Criteria.ToString() + " [" + webAppUrl + "] " + rep.Result.ToString();
-
-                        Log.WriteLine("Application is not available " + webAppUrl);
-                        Log.WriteLine("Status : " + response.StatusDescription);
-                    }
-                    else
-                    {
-                        var rep = reports.Where(x => x.Criteria == EnumTestCriteria.ReachApplication).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault();
-                        rep.Result = EnumTestResults.Successful;
-                        rep.Remarks = rep.Criteria.ToString() + " [" + webAppUrl + "] " + rep.Result.ToString();
-                        Log.WriteLine("Web app is up and running : " + webAppUrl);
+                        rep.Remarks = rep.Criteria.ToString() + " " + rep.Result.ToString() + " [" + succRate.ToString() + "%] - " + pingDomain;
+                        //rep.Remarks = rep.Criteria.ToString() + " " + rep.Result.ToString() + " [" + succRate.ToString() + "%]. ";
+                        Log.WriteLine("Ping to domain is failed [" + succRate.ToString() + "%] - " + pingDomain);
                     }
                 }
                 catch (Exception ex)
                 {
-                    var rep = reports.Where(x => x.Criteria == EnumTestCriteria.ReachApplication).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault();
+                    var rep = reports.Where(x => x.Criteria == EnumTestCriteria.ReachDomain).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault();
                     rep.Result = EnumTestResults.Failed;
-                    rep.Remarks = rep.Criteria.ToString() + " [" + webAppUrl + "] " + rep.Result.ToString();
-
-                    Log.WriteLine("Application is not available due to exception " + webAppUrl);
-                    Log.WriteLine("Exception " + ex.Message);
+                    rep.Remarks = rep.Criteria.ToString() + " failed due to exception [" + pingDomain + "].";
+                    Log.WriteLine("Ping to domain is failed due to exceptioin " + pingDomain);
+                    Log.WriteLine("EXCEPTION : " + ex.Message);
                 }
-                              
+                Log.WriteLine("Ping to domain is completed : " + pingDomain);
+
+                ////Check application here
+                //string webAppUrl = config.SelectSingleNode("//ServerConfig/ServerApplicationConfig").InnerText.ToString();
+                //try
+                //{
+                //    WebRequest request = WebRequest.Create(webAppUrl);
+                //    HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                //    if (response == null || response.StatusCode != HttpStatusCode.OK)
+                //    {
+                //        var rep = reports.Where(x => x.Criteria == EnumTestCriteria.ReachApplication).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault();
+                //        rep.Result = EnumTestResults.Failed;
+                //        rep.Remarks = rep.Criteria.ToString() + " [" + webAppUrl + "] " + rep.Result.ToString();
+                //        Log.WriteLine("Application is not available " + webAppUrl);
+                //        Log.WriteLine("Status : " + response.StatusDescription);
+                //    }
+                //    else
+                //    {
+                //        var rep = reports.Where(x => x.Criteria == EnumTestCriteria.ReachApplication).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault();
+                //        rep.Result = EnumTestResults.Successful;
+                //        rep.Remarks = rep.Criteria.ToString() + " [" + webAppUrl + "] " + rep.Result.ToString();
+                //        Log.WriteLine("Web app is up and running : " + webAppUrl);
+                //    }
+                //}
+                //catch (Exception ex)
+                //{
+                //    var rep = reports.Where(x => x.Criteria == EnumTestCriteria.ReachApplication).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault();
+                //    rep.Result = EnumTestResults.Failed;
+                //    rep.Remarks = rep.Criteria.ToString() + " [" + webAppUrl + "] " + rep.Result.ToString();
+                //    Log.WriteLine("Application is not available due to exception " + webAppUrl);
+                //    Log.WriteLine("Exception " + ex.Message);
+                //}
+
 
 
                 //Check appliance here
@@ -238,32 +261,36 @@ namespace Scan.ClientAgent
                 {
                     try
                     {
-                        if (val.PingToIP(item.IpAddress, this.pingTimeOut))
-                        {
-                            var rep = reports.Where(x => x.Criteria == EnumTestCriteria.ReachAppliance).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault();
-                            rep.Result = EnumTestResults.Successful;
-                            rep.Remarks = rep.Criteria.ToString() + " [" + item.DisplayName + "-" + item.IpAddress + "] " + rep.Result.ToString();
-                            Log.WriteLine("Ping to appliance " + item.DisplayName + "  is successful : " + item.IpAddress);
-                        }
-                        else
-                        {
-                            var rep = reports.Where(x => x.Criteria == EnumTestCriteria.ReachAppliance).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault();
-                            rep.Result = EnumTestResults.Failed;
-                            rep.Remarks = rep.Criteria.ToString() + " [" + item.DisplayName + "-" + item.IpAddress + "] " + rep.Result.ToString();
-                            Log.WriteLine("Ping to appliance " + item.DisplayName + "  is failed : " + item.IpAddress);
-                        }
+                        Log.WriteLine("Ping to appliance is started : " + item.DisplayName + "-" + item.IpAddress);
+                        double succRate = (val.PingToIP(item.IpAddress, this.pingTimeOut, this.retryCount) / retryCount) * 100;
+                        if (succRate >= successPercentage)
+                            if (succRate >= successPercentage)
+                            {
+                                var rep = reports.Where(x => x.Criteria == EnumTestCriteria.ReachAppliance).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault();
+                                rep.Result = EnumTestResults.Successful;
+                                //rep.Remarks = rep.Criteria.ToString() + " [" + item.DisplayName + "-" + item.IpAddress + "] " + rep.Result.ToString() + "-[" + perc + "] ";
+                                Log.WriteLine("Ping to appliance is successful : [" + succRate.ToString() + "%] " + item.IpAddress);
+                            }
+                            else
+                            {
+                                var rep = reports.Where(x => x.Criteria == EnumTestCriteria.ReachAppliance).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault();
+                                rep.Result = EnumTestResults.Failed;
+                                rep.Remarks = rep.Criteria.ToString() + " [" + item.DisplayName + "-" + item.IpAddress + "] " + rep.Result.ToString() + "-[" + succRate + "%] ";
+                                Log.WriteLine("Ping to appliance is failed [" + succRate.ToString() + "%] - " + item.IpAddress);
+                            }
                     }
-                    catch (Exception _ex3)
+                    catch (Exception ex)
                     {
                         var rep = reports.Where(x => x.Criteria == EnumTestCriteria.ReachAppliance).Where(y => y.Result == EnumTestResults.Pending).FirstOrDefault();
                         rep.Result = EnumTestResults.Failed;
-                        rep.Remarks = rep.Criteria.ToString() + " [" + item.DisplayName + "-" + item.IpAddress + "] " + rep.Result.ToString();
-                        Log.WriteLine("Ping to appliance " + item.DisplayName + "  is failed : " + item.IpAddress);
-                        Log.WriteLine(_ex3.Message + " : " + item.DisplayName + " | " + item.IpAddress);
+                        rep.Remarks = rep.Criteria.ToString() + " failed due to exception - " + "[" + item.DisplayName + " - " + item.IpAddress + "]";
+                        Log.WriteLine("Ping to appliance'" + item.DisplayName + "' is failed due to exception : " + item.IpAddress);
+                        Log.WriteLine("EXCEPTION : " + ex.Message);
                         continue;
                     }
+                    Log.WriteLine("Ping to appliance is completed : " + item.DisplayName + "-" + item.IpAddress);
                 }
-                
+
             }
             catch (Exception exMain)
             {

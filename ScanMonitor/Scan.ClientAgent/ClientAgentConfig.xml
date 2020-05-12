@@ -7,6 +7,8 @@
     <Gateway>192.168.1.1</Gateway>
     <ClientName>Canteen_Kiosk</ClientName>
     <TestPingDomain>www.google.com</TestPingDomain>
+    <RetryAttempts>10</RetryAttempts>
+    <SuccessPercentage>10</SuccessPercentage>
   </ClientConfig>
 
   <ServerConfig>

@@ -8,12 +8,13 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
+using Scan.Enums;
 
 namespace Scan.Notifier
 {
     public static class Notification
     {
-        public static void Send(List<Report> reports, XmlNode notificationConfigurationElement)
+        public static void Send(List<Report> reports, XmlNode notificationConfigurationElement, EnumReport report)
         {
             try
             {
@@ -43,7 +44,7 @@ namespace Scan.Notifier
                             }
                             else
                             {
-                                string msgText = "ServerAgent Report :" + Environment.NewLine;
+                                string msgText = report.ToString() + " " + Environment.NewLine;
 
                                 foreach (var r in reports)
                                 {
@@ -90,9 +91,11 @@ namespace Scan.Notifier
             }
             catch (Exception ex)
             {
+                Log.WriteLine("Exception in SMS Sending");
                 Log.WriteLine(ex.Message);
                 throw ex;
             }
+            Log.WriteLine("SMS sent successfully");
         }
     }
 }

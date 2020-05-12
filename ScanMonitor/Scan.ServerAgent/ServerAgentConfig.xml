@@ -7,6 +7,8 @@
     <Gateway>192.168.1.1</Gateway>
     <ServerName>OneLegacyLive</ServerName>
     <TestPingDomain>www.weearitest.tk</TestPingDomain>
+    <RetryAttempts>10</RetryAttempts>
+    <SuccessPercentage>10</SuccessPercentage>
   </ServerConfig>
 
   <NotificationConfig>
@@ -38,7 +40,7 @@
 
   <ClientNode ClientId="HOR1">
     <ClientName>Facebook</ClientName>
-    <IPAddress>31.13.79.35</IPAddress>
+    <IPAddress>192.168.4.234</IPAddress>
     <WinLogin>User</WinLogin>
     <DisplayName>Canteen</DisplayName>
   </ClientNode>

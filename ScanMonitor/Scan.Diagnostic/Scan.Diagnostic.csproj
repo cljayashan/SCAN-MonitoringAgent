@@ -44,5 +44,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Validator.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Scan.Logger\Scan.Logger.csproj">
+      <Project>{D005F2BA-8F72-4D3E-BC91-887D18808557}</Project>
+      <Name>Scan.Logger</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
