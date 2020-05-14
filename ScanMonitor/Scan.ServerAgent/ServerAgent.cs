@@ -67,7 +67,7 @@ namespace Scan.ServerAgent
 
         protected override void OnStop()
         {
-
+            Log.WriteLine("Server Agent Service stopped.");
         }
 
         public void OnDebug()
