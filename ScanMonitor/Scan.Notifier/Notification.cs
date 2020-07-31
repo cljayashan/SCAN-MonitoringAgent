@@ -74,7 +74,7 @@ namespace Scan.Notifier
                                         {
                                             using (HttpContent content = response.Content)
                                             {
-                                                SendingStatus = ((content.ReadAsStringAsync().Result == "0") ? "SENT" : "SENDING FAILED");
+                                                SendingStatus = ((content.ReadAsStringAsync().Result == "0") ? "SENT" : "SENDING FAILED - "+ content.ReadAsStringAsync().Result);
                                                 Log.WriteLine("Report " + SendingStatus + " to " + mobile);
                                             }
                                         }

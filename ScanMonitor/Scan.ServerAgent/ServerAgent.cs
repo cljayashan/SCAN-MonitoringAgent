@@ -62,7 +62,7 @@ namespace Scan.ServerAgent
         {
             timer.Start();
             Log.WriteLine("Timer ticking started");
-            CallCheckRound();
+            //CallCheckRound();
         }
 
         protected override void OnStop()
@@ -275,6 +275,14 @@ namespace Scan.ServerAgent
         public void OnTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             Console.WriteLine("Timer elapsed");
+
+            //Reading configurations in every round
+            config = GetConfigXml();
+            timer.Interval = int.Parse(config.SelectSingleNode("//ServerConfig/TimerInterval").InnerText.ToString());
+            this.pingTimeOut = int.Parse(config.SelectSingleNode("//ServerConfig/PingTimeOut").InnerText.ToString());
+            this.retryCount = int.Parse(config.SelectSingleNode("//ServerConfig/RetryAttempts").InnerText.ToString());
+            this.successPercentage = double.Parse(config.SelectSingleNode("//ServerConfig/RetryAttempts").InnerText.ToString());
+            
             Log.WriteLine("Timer elapsed");
 
             CallCheckRound();
