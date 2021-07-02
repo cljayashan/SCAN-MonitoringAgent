@@ -36,18 +36,23 @@ namespace Scan.ServerAgent
             Log.WriteLine("Service initialization completed");
             try
             {
-                config = GetConfigXml();
-                Log.WriteLine("Configuration file attached");
+                //config = GetConfigXml();
+                //Log.WriteLine("Configuration file attached");
+
+                XmlDocument tmpConfig = GetConfigXml();
 
                 timer = new System.Timers.Timer();
                 timer.Elapsed += new System.Timers.ElapsedEventHandler(OnTimerElapsed);
-                timer.Interval = int.Parse(config.SelectSingleNode("//ServerConfig/TimerInterval").InnerText.ToString());
+                timer.Interval = int.Parse(tmpConfig.SelectSingleNode("//ServerConfig/TimerInterval").InnerText.ToString());
                 Log.WriteLine("Timer initialization completed");
 
                 val = new Validator();
-                this.pingTimeOut = int.Parse(config.SelectSingleNode("//ServerConfig/PingTimeOut").InnerText.ToString());
-                this.retryCount = int.Parse(config.SelectSingleNode("//ServerConfig/RetryAttempts").InnerText.ToString());
-                this.successPercentage = double.Parse(config.SelectSingleNode("//ServerConfig/RetryAttempts").InnerText.ToString());
+                //this.pingTimeOut = int.Parse(config.SelectSingleNode("//ServerConfig/PingTimeOut").InnerText.ToString());
+                //this.retryCount = int.Parse(config.SelectSingleNode("//ServerConfig/RetryAttempts").InnerText.ToString());
+                //this.successPercentage = double.Parse(config.SelectSingleNode("//ServerConfig/RetryAttempts").InnerText.ToString());
+
+                tmpConfig = null;
+                
             }
             catch (Exception ex)
             {
@@ -62,7 +67,7 @@ namespace Scan.ServerAgent
         {
             timer.Start();
             Log.WriteLine("Timer ticking started");
-            CallCheckRound();
+            //CallCheckRound();
         }
 
         protected override void OnStop()
@@ -92,6 +97,9 @@ namespace Scan.ServerAgent
                 //doc.Load(@"F:\scanpublish\ServerAgentConfig.xml");
 #endif
                 string xmlcontents = doc.InnerXml;
+
+                Log.WriteLine("Configuration file attached");
+
                 return doc;
             }
             catch (Exception ex)
@@ -109,16 +117,21 @@ namespace Scan.ServerAgent
                 List<Client> clients = new List<Client>();
                 foreach (XmlNode client in nodeList)
                 {
-                    Client c = new Client();
+                    //string isClientEnabled = client.SelectSingleNode("//ClientNode").Attributes["Enabled"].Value;
+                    string isClientEnabled = client.Attributes["Enabled"].Value;
+                    if (isClientEnabled == "1")
+                    {
+                        Client c = new Client();
 
-                    c.ClientId = "";
-                    c.ClientName = client["ClientName"].InnerText;
-                    c.IpAddress = client["IPAddress"].InnerText;
-                    c.WinLogin = client["WinLogin"].InnerText;
-                    c.DisplayName = client["DisplayName"].InnerText;
+                        c.ClientId = client.Attributes["ClientId"].Value;
+                        c.ClientName = client["ClientName"].InnerText;
+                        c.IpAddress = client["IPAddress"].InnerText;
+                        c.WinLogin = client["WinLogin"].InnerText;
+                        c.DisplayName = client["DisplayName"].InnerText;
 
-                    clients.Add(c);
-
+                        clients.Add(c);
+                    }
+                    
                 }
                 return clients;
             }
@@ -257,6 +270,14 @@ namespace Scan.ServerAgent
 
         private void CallCheckRound()
         {
+            config = null;
+            config = GetConfigXml();
+
+            timer.Interval = int.Parse(config.SelectSingleNode("//ServerConfig/TimerInterval").InnerText.ToString());
+            this.pingTimeOut = int.Parse(config.SelectSingleNode("//ServerConfig/PingTimeOut").InnerText.ToString());
+            this.retryCount = int.Parse(config.SelectSingleNode("//ServerConfig/RetryAttempts").InnerText.ToString());
+            this.successPercentage = double.Parse(config.SelectSingleNode("//ServerConfig/RetryAttempts").InnerText.ToString());
+
             List<Report> rList = CheckRound();
 
             var failures = rList.Where(x => x.Result == EnumTestResults.Failed).ToList();
@@ -275,6 +296,14 @@ namespace Scan.ServerAgent
         public void OnTimerElapsed(object sender, System.Timers.ElapsedEventArgs e)
         {
             Console.WriteLine("Timer elapsed");
+
+            //Reading configurations in every round
+            
+            //timer.Interval = int.Parse(config.SelectSingleNode("//ServerConfig/TimerInterval").InnerText.ToString());
+            //this.pingTimeOut = int.Parse(config.SelectSingleNode("//ServerConfig/PingTimeOut").InnerText.ToString());
+            //this.retryCount = int.Parse(config.SelectSingleNode("//ServerConfig/RetryAttempts").InnerText.ToString());
+            //this.successPercentage = double.Parse(config.SelectSingleNode("//ServerConfig/RetryAttempts").InnerText.ToString());
+
             Log.WriteLine("Timer elapsed");
 
             CallCheckRound();

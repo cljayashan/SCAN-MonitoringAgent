@@ -38,14 +38,14 @@
     
   </NotificationConfig>
 
-  <ClientNode ClientId="HOR1">
+  <ClientNode ClientId="HOR1" Enabled="0">
     <ClientName>Facebook</ClientName>
     <IPAddress>192.168.4.234</IPAddress>
     <WinLogin>User</WinLogin>
     <DisplayName>Canteen</DisplayName>
   </ClientNode>
 
-  <ClientNode ClientId="HOR2">
+  <ClientNode ClientId="HOR2" Enabled="1">
     <ClientName>StackOverflow</ClientName>
     <IPAddress>151.101.129.69</IPAddress>
     <WinLogin>User</WinLogin>
